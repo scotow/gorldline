@@ -10,7 +10,11 @@ import (
 
 const (
 	DefaultUrl = "http://restaurant-seclin.atosworldline.com"
-	MenusUri = "/WidgetPage.aspx?widgetId=35"
+	MenusUri   = "/WidgetPage.aspx?widgetId=35"
+)
+
+const (
+	cookieContent = "portal_url=restaurant-seclin.atosworldline.com/; language=FR'"
 )
 
 var (
@@ -22,12 +26,12 @@ func CurrentList() (*List, error) {
 }
 
 func NewListFromUrl(url string) (list *List, err error) {
-	req, err := http.NewRequest("GET", url + MenusUri, nil)
+	req, err := http.NewRequest("GET", url+MenusUri, nil)
 	if err != nil {
 		return
 	}
 
-	req.Header.Set("Cookie", "portal_url=restaurant-seclin.atosworldline.com/; language=FR'")
+	req.Header.Set("Cookie", cookieContent)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return
@@ -77,7 +81,7 @@ func NewList(doc *goquery.Document, url string) (list *List, err error) {
 
 	if len(menus) > 0 {
 		list.Start = list.Menus[0].Start
-		list.End = list.Menus[len(list.Menus) - 1].End
+		list.End = list.Menus[len(list.Menus)-1].End
 	}
 
 	return
@@ -116,16 +120,14 @@ func (l *List) Current() (menu *Menu) {
 func (l *List) Nearest() (menu *Menu) {
 	now := time.Now()
 	for _, menu = range l.Menus {
-		if now.After(menu.Start) && now.Before(menu.End) || now.Before(menu.Start) {
+		if (now.After(menu.Start) && now.Before(menu.End)) || now.Before(menu.Start) {
 			return menu
 		}
 	}
 
 	if len(l.Menus) > 0 {
-		menu = l.Menus[len(l.Menus)- 1]
+		menu = l.Menus[len(l.Menus)-1]
 	}
 
 	return
 }
-
-
