@@ -10,14 +10,14 @@ import (
 
 var (
 	ErrInvalidLinkText = errors.New("invalid link text content")
-	ErrNoLink = errors.New("invalid menu link")
-	ErrCannotParseDay = errors.New("error while parsing menu day string")
+	ErrNoLink          = errors.New("invalid menu link")
+	ErrCannotParseDay  = errors.New("error while parsing menu day string")
 )
 
 var (
 	months = [...]string{
 		"janvier",
-		"février",
+		"fevrier",
 		"mars",
 		"avril",
 		"mai",
@@ -27,7 +27,7 @@ var (
 		"septembre",
 		"octobre",
 		"novembre",
-		"décembre",
+		"decembre",
 	}
 	locale *time.Location
 )
@@ -55,9 +55,9 @@ func NewMenu(s *goquery.Selection, url string) (menu *Menu, err error) {
 	}
 
 	menu = &Menu{
-		Link: url + link,
+		Link:  url + link,
 		Start: start,
-		End: end,
+		End:   end,
 	}
 	return
 }
@@ -107,9 +107,7 @@ func parseDate(s string) (start, end time.Time, err error) {
 }
 
 type Menu struct {
-	Link	string
-	Start 	time.Time
-	End 	time.Time
+	Link  string
+	Start time.Time
+	End   time.Time
 }
-
-
