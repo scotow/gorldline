@@ -63,7 +63,7 @@ func NewMenu(s *goquery.Selection, url string) (menu *Menu, err error) {
 }
 
 func parseDate(s string) (start, end time.Time, err error) {
-	var startDay, endDay int
+	var startDay, endDay, year int
 	var frMonth string
 
 	n, err := fmt.Sscanf(s, "semaine du %d au %d %s", &startDay, &endDay, &frMonth)
@@ -75,6 +75,9 @@ func parseDate(s string) (start, end time.Time, err error) {
 		err = ErrCannotParseDay
 		return
 	}
+
+	frMonth = strings.Replace(frMonth, "é", "e", -1)
+	frMonth = strings.Replace(frMonth, "û", "u", -1)
 
 	var endMonth int
 	for i, m := range months {
@@ -90,17 +93,24 @@ func parseDate(s string) (start, end time.Time, err error) {
 	}
 
 	now := time.Now().In(locale)
-	end = time.Date(now.Year(), time.Month(endMonth), endDay, 0, 0, 0, 0, locale)
+
+	if endMonth == 12 && now.Month() == time.January {
+		year = now.Year() - 1
+	} else {
+		year = now.Year()
+	}
+
+	end = time.Date(year, time.Month(endMonth), endDay, 0, 0, 0, 0, locale)
 
 	if startDay < endDay {
-		start = time.Date(now.Year(), time.Month(endMonth), startDay, 0, 0, 0, 0, locale)
+		start = time.Date(year, time.Month(endMonth), startDay, 0, 0, 0, 0, locale)
 	} else {
 		startMonth := endMonth - 1
 		if startMonth == 0 {
 			startMonth = 12
 		}
 
-		start = time.Date(now.Year(), time.Month(startMonth), startDay, 0, 0, 0, 0, locale)
+		start = time.Date(year, time.Month(startMonth), startDay, 0, 0, 0, 0, locale)
 	}
 
 	return
