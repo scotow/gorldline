@@ -73,7 +73,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func redirectToList(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, gorldline.DefaultUrl+gorldline.MenusUri, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, gorldline.DefaultBaseUrl+gorldline.MenusUri, http.StatusTemporaryRedirect)
 }
 
 func listeningAddress() string {

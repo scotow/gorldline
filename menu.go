@@ -36,44 +36,41 @@ func init() {
 	locale, _ = time.LoadLocation("Europe/Paris")
 }
 
-func NewMenu(s *goquery.Selection, url string) (menu *Menu, err error) {
+func NewMenu(s *goquery.Selection, baseUrl string) (*Menu, error) {
 	label := strings.ToLower(s.Text())
 	if label == "" {
-		err = ErrInvalidLinkText
-		return
+		return nil, ErrInvalidLinkText
 	}
 
 	start, end, err := parseDate(label)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	link, exists := s.Attr("href")
-	if !exists || link == "" {
-		err = ErrNoLink
-		return
+	uri, exists := s.Attr("href")
+	if !exists || uri == "" {
+		return nil, ErrNoLink
 	}
 
-	menu = &Menu{
-		Link:  url + link,
-		Start: start,
-		End:   end,
-	}
-	return
+	m := new(Menu)
+	m.Link = baseUrl + uri
+	m.Start = start
+	m.End = end
+
+	return m, nil
 }
 
-func parseDate(s string) (start, end time.Time, err error) {
+func parseDate(s string) (time.Time, time.Time, error) {
 	var startDay, endDay, year int
 	var frMonth string
 
 	n, err := fmt.Sscanf(s, "semaine du %d au %d %s", &startDay, &endDay, &frMonth)
 	if err != nil {
-		return
+		return time.Time{}, time.Time{}, err
 	}
 
 	if n != 3 {
-		err = ErrCannotParseDay
-		return
+		return time.Time{}, time.Time{}, ErrCannotParseDay
 	}
 
 	frMonth = strings.Replace(frMonth, "é", "e", -1)
@@ -88,8 +85,7 @@ func parseDate(s string) (start, end time.Time, err error) {
 	}
 
 	if endMonth == 0 {
-		err = ErrCannotParseDay
-		return
+		return time.Time{}, time.Time{}, ErrCannotParseDay
 	}
 
 	now := time.Now().In(locale)
@@ -100,7 +96,8 @@ func parseDate(s string) (start, end time.Time, err error) {
 		year = now.Year()
 	}
 
-	end = time.Date(year, time.Month(endMonth), endDay, 0, 0, 0, 0, locale)
+	var start time.Time
+	end := time.Date(year, time.Month(endMonth), endDay, 0, 0, 0, 0, locale)
 
 	if startDay < endDay {
 		start = time.Date(year, time.Month(endMonth), startDay, 0, 0, 0, 0, locale)
@@ -113,7 +110,7 @@ func parseDate(s string) (start, end time.Time, err error) {
 		start = time.Date(year, time.Month(startMonth), startDay, 0, 0, 0, 0, locale)
 	}
 
-	return
+	return start, end, nil
 }
 
 type Menu struct {
