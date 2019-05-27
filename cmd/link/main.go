@@ -24,5 +24,5 @@ func main() {
 	}
 
 	fmt.Printf("Menu from %s to %s:\n", nearest.Start.Format(timeFormat), nearest.End.Format(timeFormat))
-	fmt.Println(nearest.Link)
+	fmt.Println(nearest.Url)
 }

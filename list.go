@@ -65,7 +65,7 @@ func NewList(doc *goquery.Document, baseUrl string) (*List, error) {
 
 	var err error
 	links.Each(func(_ int, s *goquery.Selection) {
-		menu, em := NewMenu(s, baseUrl)
+		menu, em := NewMenuNode(s, baseUrl)
 		if em != nil {
 			err = em
 			return

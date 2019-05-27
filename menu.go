@@ -42,7 +42,7 @@ func init() {
 	locale = l
 }
 
-func NewMenu(s *goquery.Selection, baseUrl string) (*Menu, error) {
+func NewMenuNode(s *goquery.Selection, baseUrl string) (*Menu, error) {
 	label := strings.ToLower(s.Text())
 	if label == "" {
 		return nil, ErrInvalidLinkText
@@ -58,16 +58,20 @@ func NewMenu(s *goquery.Selection, baseUrl string) (*Menu, error) {
 		return nil, ErrNoLink
 	}
 
+	return NewMenuUrl(baseUrl+uri, start, end), nil
+}
+
+func NewMenuUrl(url string, start, end time.Time) *Menu {
 	m := new(Menu)
-	m.Link = baseUrl + uri
+	m.Url = url
 	m.Start = start
 	m.End = end
 
-	return m, nil
+	return m
 }
 
 type Menu struct {
-	Link  string
+	Url   string
 	Start time.Time
 	End   time.Time
 }
