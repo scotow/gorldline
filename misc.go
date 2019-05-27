@@ -1,10 +1,44 @@
 package gorldline
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
+
+var (
+	ErrCannotParseDay = errors.New("error while parsing menu day string")
+)
+
+var (
+	months = [...]string{
+		"janvier",
+		"fevrier",
+		"mars",
+		"avril",
+		"mai",
+		"juin",
+		"juillet",
+		"aout",
+		"septembre",
+		"octobre",
+		"novembre",
+		"decembre",
+	}
+	locale *time.Location
+)
+
+func init() {
+	l, err := time.LoadLocation("Europe/Paris")
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err.Error())
+	}
+
+	locale = l
+}
 
 func parseDate(s string) (time.Time, time.Time, error) {
 	var startDay, endDay, year int
@@ -57,4 +91,18 @@ func parseDate(s string) (time.Time, time.Time, error) {
 	}
 
 	return start, end, nil
+}
+
+func parsePrice(s string) (int, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0, nil
+	}
+
+	v, err := strconv.Atoi(strings.Replace(s, ",", "", -1))
+	if err != nil {
+		return 0, err
+	}
+
+	return v, nil
 }

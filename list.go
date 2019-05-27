@@ -61,16 +61,16 @@ func NewListFromUrl(baseUrl string) (*List, error) {
 
 func NewList(doc *goquery.Document, baseUrl string) (*List, error) {
 	links := doc.Find("#bd .main-content .section-content .content-right .ul-container ul li a")
-	menus := make([]*Menu, 0, links.Length())
+	weeks := make([]*Week, 0, links.Length())
 
 	var err error
 	links.Each(func(_ int, s *goquery.Selection) {
-		menu, em := NewMenuNode(s, baseUrl)
-		if em != nil {
-			err = em
+		week, ew := NewWeekNode(s, baseUrl)
+		if ew != nil {
+			err = ew
 			return
 		}
-		menus = append(menus, menu)
+		weeks = append(weeks, week)
 	})
 
 	if err != nil {
@@ -78,58 +78,57 @@ func NewList(doc *goquery.Document, baseUrl string) (*List, error) {
 	}
 
 	l := new(List)
-	l.Menus = menus
+	l.Weeks = weeks
 	sort.Sort(l)
 
-	if len(menus) > 0 {
-		l.Start = l.Menus[0].Start
-		l.End = l.Menus[len(l.Menus)-1].End
+	if len(weeks) > 0 {
+		l.Start = l.Weeks[0].Start
+		l.End = l.Weeks[len(l.Weeks)-1].End
 	}
 
 	return l, err
 }
 
 type List struct {
-	Menus []*Menu
+	Weeks []*Week
 	Start time.Time
 	End   time.Time
 }
 
 func (l *List) Len() int {
-	return len(l.Menus)
+	return len(l.Weeks)
 }
 
 func (l *List) Less(i, j int) bool {
-	return l.Menus[i].Start.Before(l.Menus[j].Start)
+	return l.Weeks[i].Start.Before(l.Weeks[j].Start)
 }
 
 func (l *List) Swap(i, j int) {
-	l.Menus[i], l.Menus[j] = l.Menus[j], l.Menus[i]
+	l.Weeks[i], l.Weeks[j] = l.Weeks[j], l.Weeks[i]
 }
 
-func (l *List) Current() (menu *Menu) {
+func (l *List) Current() *Week {
 	now := time.Now()
-	for _, menu = range l.Menus {
-		if now.After(menu.Start) && now.Before(menu.End) {
-			return
+	for _, week := range l.Weeks {
+		if now.After(week.Start) && now.Before(week.End) {
+			return week
 		}
 	}
 
-	menu = nil
-	return
+	return nil
 }
 
-func (l *List) Nearest() (menu *Menu) {
+func (l *List) Nearest() *Week {
 	now := time.Now()
-	for _, menu = range l.Menus {
-		if (now.After(menu.Start) && now.Before(menu.End)) || now.Before(menu.Start) {
-			return menu
+	for _, week := range l.Weeks {
+		if (now.After(week.Start) && now.Before(week.End)) || now.Before(week.Start) {
+			return week
 		}
 	}
 
-	if len(l.Menus) > 0 {
-		menu = l.Menus[len(l.Menus)-1]
+	if len(l.Weeks) > 0 {
+		return l.Weeks[len(l.Weeks)-1]
 	}
 
-	return
+	return nil
 }
