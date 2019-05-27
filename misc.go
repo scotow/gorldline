@@ -77,7 +77,7 @@ func parseDate(s string) (time.Time, time.Time, error) {
 	}
 
 	var start time.Time
-	end := time.Date(year, time.Month(endMonth), endDay, 0, 0, 0, 0, locale)
+	end := time.Date(year, time.Month(endMonth), endDay, 23, 59, 59, 0, locale)
 
 	if startDay < endDay {
 		start = time.Date(year, time.Month(endMonth), startDay, 0, 0, 0, 0, locale)
