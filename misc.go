@@ -28,7 +28,8 @@ var (
 		"novembre",
 		"decembre",
 	}
-	locale *time.Location
+	locale   *time.Location
+	timeZero = time.Time{}
 )
 
 func init() {
@@ -46,11 +47,11 @@ func parseDate(s string) (time.Time, time.Time, error) {
 
 	n, err := fmt.Sscanf(s, "semaine du %d au %d %s", &startDay, &endDay, &frMonth)
 	if err != nil {
-		return time.Time{}, time.Time{}, err
+		return timeZero, timeZero, err
 	}
 
 	if n != 3 {
-		return time.Time{}, time.Time{}, ErrCannotParseDay
+		return timeZero, timeZero, ErrCannotParseDay
 	}
 
 	frMonth = strings.Replace(frMonth, "é", "e", -1)
@@ -65,7 +66,7 @@ func parseDate(s string) (time.Time, time.Time, error) {
 	}
 
 	if endMonth == 0 {
-		return time.Time{}, time.Time{}, ErrCannotParseDay
+		return timeZero, timeZero, ErrCannotParseDay
 	}
 
 	now := time.Now().In(locale)
@@ -77,7 +78,7 @@ func parseDate(s string) (time.Time, time.Time, error) {
 	}
 
 	var start time.Time
-	end := time.Date(year, time.Month(endMonth), endDay, 23, 59, 59, 0, locale)
+	end := time.Date(year, time.Month(endMonth), endDay, 23, 59, 59, 1e9-1, locale)
 
 	if startDay < endDay {
 		start = time.Date(year, time.Month(endMonth), startDay, 0, 0, 0, 0, locale)
