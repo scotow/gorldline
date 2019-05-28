@@ -9,7 +9,7 @@ var (
 	ErrInvalidDayData = errors.New("invalid day data")
 )
 
-func NewDay(types, names, prices []string, start, end time.Time) (*Day, error) {
+func NewDayRaw(types, names, prices []string, start, end time.Time) (*Day, error) {
 	if len(types) != len(names) || len(types) != len(prices) {
 		return nil, ErrInvalidDayData
 	}
@@ -20,12 +20,7 @@ func NewDay(types, names, prices []string, start, end time.Time) (*Day, error) {
 		m := new(Meal)
 		m.Type = types[i]
 		m.Name = names[i]
-
-		price, err := parsePrice(prices[i])
-		if err != nil {
-			return nil, err
-		}
-		m.Price = price
+		m.Price = parsePrice(prices[i])
 
 		meals[i] = m
 	}
@@ -36,6 +31,15 @@ func NewDay(types, names, prices []string, start, end time.Time) (*Day, error) {
 	d.End = end
 
 	return d, nil
+}
+
+func NewDay(meals []*Meal, start, end time.Time) *Day {
+	d := new(Day)
+	d.Meals = meals
+	d.Start = start
+	d.End = end
+
+	return d
 }
 
 type Day struct {

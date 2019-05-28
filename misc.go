@@ -94,16 +94,19 @@ func parseDate(s string) (time.Time, time.Time, error) {
 	return start, end, nil
 }
 
-func parsePrice(s string) (int, error) {
+func parsePrice(s string) int {
 	s = strings.TrimSpace(s)
 	if s == "" {
-		return 0, nil
+		return -1
 	}
 
-	v, err := strconv.Atoi(strings.Replace(s, ",", "", -1))
+	s = strings.Replace(s, ".", "", -1)
+	s = strings.Replace(s, ",", "", -1)
+
+	v, err := strconv.Atoi(s)
 	if err != nil {
-		return 0, err
+		return -1
 	}
 
-	return v, nil
+	return v
 }

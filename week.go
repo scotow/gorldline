@@ -3,7 +3,6 @@ package gorldline
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/extrame/xls"
 	"io/ioutil"
@@ -76,19 +75,22 @@ func NewWeekUrl(url string, start, end time.Time) (*Week, error) {
 
 	sheet := book.ReadAllCells(64)
 
-	types, err := parseTypes(sheet)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(types)
-
-	// TODO: Check if sheet has a correct size.
-	if (len(sheet[0])-1)%2 != 0 {
-		// TODO: Invalid width error.
+	// Check height.
+	if len(sheet) < 7 {
 		return nil, ErrInvalidSheetData
 	}
 
+	if len(sheet[0]) < 3 || (len(sheet[0])+1)%2 != 0 {
+		return nil, ErrInvalidSheetData
+	}
+
+	days, err := parseDays(sheet)
+	if err != nil {
+		return nil, err
+	}
+
 	w := new(Week)
+	w.Days = days
 	w.Url = url
 	w.Start = start
 	w.End = end
@@ -109,15 +111,43 @@ type Week struct {
 	}
 }*/
 
-func parseTypes(sheet [][]string) ([]string, error) {
-	if len(sheet) <= 6 {
-		return nil, ErrInvalidSheetData
+func parseDays(sheet [][]string) ([]*Day, error) {
+	types := parseTypes(sheet)
+
+	dayCount := (len(sheet[0]) - 1) / 2
+	meals := make([][]*Meal, dayCount)
+	for i := range meals {
+		meals[i] = make([]*Meal, 0)
 	}
 
+	for i, row := range sheet[6:] {
+		for j := 1; j < len(row); j += 2 {
+			if strings.TrimSpace(row[j]) == "" {
+				continue
+			}
+
+			m := new(Meal)
+			m.Type = types[i]
+			m.Name = row[j]
+			m.Price = parsePrice(row[j+1])
+
+			meals[j/2] = append(meals[j/2], m)
+		}
+	}
+
+	days := make([]*Day, dayCount)
+	for i, mealList := range meals {
+		days[i] = NewDay(mealList, timeZero, timeZero)
+	}
+
+	return days, nil
+}
+
+func parseTypes(sheet [][]string) []string {
 	types := make([]string, len(sheet)-6)
 	for i, row := range sheet[6:] {
 		types[i] = row[0]
 	}
 
-	return types, nil
+	return types
 }
