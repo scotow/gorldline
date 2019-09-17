@@ -5,8 +5,10 @@ import (
 	"errors"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/extrame/xls"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -21,7 +23,7 @@ var (
 )
 
 func NewWeekNode(s *goquery.Selection, baseUrl string) (*Week, error) {
-	label := strings.ToLower(s.Text())
+	label := s.Text()
 	if label == "" {
 		return nil, ErrInvalidLinkText
 	}
@@ -39,44 +41,98 @@ func NewWeekNode(s *goquery.Selection, baseUrl string) (*Week, error) {
 	return NewWeekUrl(baseUrl+uri, start, end)
 }
 
+func NewWeekFile(path string, start, end time.Time) (*Week, error) {
+	w := new(Week)
+	w.Start = start
+	w.End = end
+
+	w.daysFetcher = func() ([]*Day, error) {
+		file, err := os.Open(path)
+		if err != nil {
+			return nil, err
+		}
+
+		defer func() {
+			_ = file.Close()
+		}()
+
+		return readerFromDays(file)
+	}
+
+	return w, nil
+}
+
 func NewWeekUrl(url string, start, end time.Time) (*Week, error) {
-	resp, err := http.Get(url)
+	w := new(Week)
+	w.Start = start
+	w.End = end
+
+	w.daysFetcher = func() ([]*Day, error) {
+		resp, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, ErrFetchSheet
+		}
+
+		if resp.ContentLength <= 0 {
+			return nil, ErrInvalidSheetSize
+		}
+
+		if resp.ContentLength > 1e6 {
+			return nil, ErrSheetTooLarge
+		}
+
+		data, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		err = resp.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		return readerFromDays(bytes.NewReader(data))
+	}
+
+	return w, nil
+}
+
+type Week struct {
+	daysFetcher func() ([]*Day, error)
+	days        []*Day
+
+	Start time.Time
+	End   time.Time
+}
+
+func (w *Week) GetDays() ([]*Day, error) {
+	if w.days != nil {
+		return w.days, nil
+	}
+
+	days, err := w.daysFetcher()
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, ErrFetchSheet
-	}
+	w.days = days
+	return days, nil
+}
 
-	if resp.ContentLength <= 0 {
-		return nil, ErrInvalidSheetSize
-	}
-
-	if resp.ContentLength > 1e6 {
-		return nil, ErrSheetTooLarge
-	}
-
-	data, err := ioutil.ReadAll(resp.Body)
+func readerFromDays(rc io.ReadSeeker) ([]*Day, error) {
+	book, err := xls.OpenReader(rc, "utf-8")
 	if err != nil {
 		return nil, err
 	}
 
-	err = resp.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	reader := bytes.NewReader(data)
-	book, err := xls.OpenReader(reader, "utf-8")
-	if err != nil {
-		return nil, err
-	}
-
-	sheet := book.ReadAllCells(64)
+	sheet := trimSheet(book.ReadAllCells(64))
 
 	// Check height.
-	if len(sheet) < 7 {
+	if len(sheet) < 4 {
 		return nil, ErrInvalidSheetData
 	}
 
@@ -89,27 +145,8 @@ func NewWeekUrl(url string, start, end time.Time) (*Week, error) {
 		return nil, err
 	}
 
-	w := new(Week)
-	w.Days = days
-	w.Url = url
-	w.Start = start
-	w.End = end
-
-	return w, nil
+	return days, nil
 }
-
-type Week struct {
-	Url   string
-	Days  []*Day
-	Start time.Time
-	End   time.Time
-}
-
-/*func (w *Week) GetDays() ([]*Day, error)  {
-	if w.Days != nil {
-		return w.Days, nil
-	}
-}*/
 
 func parseDays(sheet [][]string) ([]*Day, error) {
 	types := parseTypes(sheet)

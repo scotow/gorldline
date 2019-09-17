@@ -41,11 +41,11 @@ func init() {
 	locale = l
 }
 
-func parseDate(s string) (time.Time, time.Time, error) {
+func parseDate(dateString string) (time.Time, time.Time, error) {
 	var startDay, endDay, year int
 	var frMonth string
 
-	n, err := fmt.Sscanf(s, "semaine du %d au %d %s", &startDay, &endDay, &frMonth)
+	n, err := fmt.Sscanf(strings.ToLower(dateString), "semaine du %d au %d %s", &startDay, &endDay, &frMonth)
 	if err != nil {
 		return timeZero, timeZero, err
 	}
@@ -109,4 +109,32 @@ func parsePrice(s string) int {
 	}
 
 	return v
+}
+
+func isRowEmpty(row []string) bool {
+	for _, cell := range row {
+		if len(cell) > 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func trimSheet(sheet [][]string) [][]string {
+	start, end := 0, len(sheet)-1
+	for i := 0; i < len(sheet); i++ {
+		if !isRowEmpty(sheet[i]) {
+			start = i
+			break
+		}
+	}
+
+	for i := len(sheet) - 1; i >= 0; i-- {
+		if !isRowEmpty(sheet[i]) {
+			end = i
+			break
+		}
+	}
+
+	return sheet[start : end+1]
 }
