@@ -96,7 +96,7 @@ func parseDate(s string) (time.Time, time.Time, error) {
 
 func parsePrice(s string) int {
 	s = strings.TrimSpace(s)
-	if s == "" {
+	if s == "" || s == "CJ" {
 		return -1
 	}
 
