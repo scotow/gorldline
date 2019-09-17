@@ -100,8 +100,8 @@ func parsePrice(s string) int {
 		return -1
 	}
 
-	s = strings.Replace(s, ".", "", -1)
-	s = strings.Replace(s, ",", "", -1)
+	s = strings.ReplaceAll(s, ".", "")
+	s = strings.ReplaceAll(s, ",", "")
 
 	v, err := strconv.Atoi(s)
 	if err != nil {
@@ -137,4 +137,12 @@ func trimSheet(sheet [][]string) [][]string {
 	}
 
 	return sheet[start : end+1]
+}
+
+func midnight(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
+
+func endOfDay(t time.Time) time.Time {
+	return midnight(t).Add(time.Hour*24 - time.Nanosecond)
 }

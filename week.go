@@ -56,7 +56,7 @@ func NewWeekFile(path string, start, end time.Time) (*Week, error) {
 			_ = file.Close()
 		}()
 
-		return readerFromDays(file)
+		return daysFromReader(file, start)
 	}
 
 	return w, nil
@@ -95,7 +95,7 @@ func NewWeekUrl(url string, start, end time.Time) (*Week, error) {
 			return nil, err
 		}
 
-		return readerFromDays(bytes.NewReader(data))
+		return daysFromReader(bytes.NewReader(data), start)
 	}
 
 	return w, nil
@@ -123,7 +123,7 @@ func (w *Week) GetDays() ([]*Day, error) {
 	return days, nil
 }
 
-func readerFromDays(rc io.ReadSeeker) ([]*Day, error) {
+func daysFromReader(rc io.ReadSeeker, start time.Time) ([]*Day, error) {
 	book, err := xls.OpenReader(rc, "utf-8")
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func readerFromDays(rc io.ReadSeeker) ([]*Day, error) {
 		return nil, ErrInvalidSheetData
 	}
 
-	days, err := parseDays(sheet)
+	days, err := parseDays(sheet, start)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func readerFromDays(rc io.ReadSeeker) ([]*Day, error) {
 	return days, nil
 }
 
-func parseDays(sheet [][]string) ([]*Day, error) {
+func parseDays(sheet [][]string, start time.Time) ([]*Day, error) {
 	types := parseTypes(sheet)
 
 	dayCount := (len(sheet[0]) - 1) / 2
@@ -157,32 +157,34 @@ func parseDays(sheet [][]string) ([]*Day, error) {
 		meals[i] = make([]*Meal, 0)
 	}
 
-	for i, row := range sheet[6:] {
-		for j := 1; j < len(row); j += 2 {
-			if strings.TrimSpace(row[j]) == "" {
+	for y, row := range sheet[4:] {
+		for x := 1; x < len(row); x += 2 {
+			name := strings.TrimSpace(row[x])
+			if name == "" {
 				continue
 			}
 
 			m := new(Meal)
-			m.Type = types[i]
-			m.Name = row[j]
-			m.Price = parsePrice(row[j+1])
+			m.Type = types[y]
+			m.Name = name
+			m.Price = parsePrice(row[x+1])
 
-			meals[j/2] = append(meals[j/2], m)
+			meals[x/2] = append(meals[x/2], m)
 		}
 	}
 
 	days := make([]*Day, dayCount)
 	for i, mealList := range meals {
-		days[i] = NewDay(mealList, timeZero, timeZero)
+		dayStart := start.Add(time.Hour * 24 * time.Duration(i))
+		days[i] = NewDay(mealList, dayStart, endOfDay(dayStart))
 	}
 
 	return days, nil
 }
 
 func parseTypes(sheet [][]string) []string {
-	types := make([]string, len(sheet)-6)
-	for i, row := range sheet[6:] {
+	types := make([]string, len(sheet)-4)
+	for i, row := range sheet[4:] {
 		types[i] = row[0]
 	}
 
