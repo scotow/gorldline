@@ -66,7 +66,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.RequestURI == "/direct" || r.RequestURI == "/download" {
-		http.Redirect(w, r, nearest.Url, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, nearest.LinkOrPath, http.StatusTemporaryRedirect)
 	} else {
 		w.Header().Set("Content-Type", "text/html")
 		_ = mainPage.Execute(w, nearest)
