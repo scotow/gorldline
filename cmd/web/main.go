@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/scotow/gorldline"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/scotow/gorldline"
 )
 
 const (

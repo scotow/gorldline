@@ -2,10 +2,11 @@ package gorldline
 
 import (
 	"errors"
-	"github.com/PuerkitoBio/goquery"
 	"net/http"
 	"sort"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 const (

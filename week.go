@@ -3,14 +3,15 @@ package gorldline
 import (
 	"bytes"
 	"errors"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/extrame/xls"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/extrame/xls"
 )
 
 var (

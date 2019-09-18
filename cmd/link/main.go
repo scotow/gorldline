@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/scotow/gorldline"
 	"log"
+
+	"github.com/scotow/gorldline"
 )
 
 const (
