@@ -45,6 +45,7 @@ func NewWeekFile(path string, start, end time.Time) (*Week, error) {
 	w := new(Week)
 	w.Start = start
 	w.End = end
+	w.LinkOrPath = path
 
 	w.daysFetcher = func() ([]*Day, error) {
 		file, err := os.Open(path)
@@ -66,6 +67,7 @@ func NewWeekUrl(url string, start, end time.Time) (*Week, error) {
 	w := new(Week)
 	w.Start = start
 	w.End = end
+	w.LinkOrPath = url
 
 	w.daysFetcher = func() ([]*Day, error) {
 		resp, err := http.Get(url)
@@ -105,8 +107,9 @@ type Week struct {
 	daysFetcher func() ([]*Day, error)
 	days        []*Day
 
-	Start time.Time
-	End   time.Time
+	Start      time.Time
+	End        time.Time
+	LinkOrPath string
 }
 
 func (w *Week) GetDays() ([]*Day, error) {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/scotow/gorldline"
 	"log"
@@ -24,9 +23,6 @@ func main() {
 		return
 	}
 
-	days, err := nearest.GetDays()
 	fmt.Printf("Menu from %s to %s:\n", nearest.Start.Format(timeFormat), nearest.End.Format(timeFormat))
-
-	data, _ := json.MarshalIndent(days, "", "\t")
-	fmt.Println(string(data))
+	fmt.Println(nearest.LinkOrPath)
 }
