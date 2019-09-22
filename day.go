@@ -43,7 +43,13 @@ func NewDay(meals []*Meal, start, end time.Time) *Day {
 }
 
 type Day struct {
-	Meals []*Meal
-	Start time.Time
-	End   time.Time
+	Meals []*Meal   `json:"meals"`
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
+}
+
+type Meal struct {
+	Type  string `json:"type"`
+	Name  string `json:"name"`
+	Price int    `json:"price"`
 }

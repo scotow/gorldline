@@ -106,25 +106,38 @@ func NewWeekUrl(url string, start, end time.Time) (*Week, error) {
 
 type Week struct {
 	daysFetcher func() ([]*Day, error)
-	days        []*Day
 
-	Start      time.Time
-	End        time.Time
-	LinkOrPath string
+	Days       []*Day    `json:"days"`
+	Start      time.Time `json:"start"`
+	End        time.Time `json:"end"`
+	LinkOrPath string    `json:"-"`
+}
+
+func (w *Week) FetchDays() error {
+	days, err := w.daysFetcher()
+	if err != nil {
+		return err
+	}
+
+	w.Days = days
+	return nil
+}
+
+func (w *Week) FetchDaysIfNeeded() error {
+	if w.Days != nil {
+		return nil
+	}
+
+	return w.FetchDays()
 }
 
 func (w *Week) GetDays() ([]*Day, error) {
-	if w.days != nil {
-		return w.days, nil
-	}
-
-	days, err := w.daysFetcher()
+	err := w.FetchDaysIfNeeded()
 	if err != nil {
 		return nil, err
 	}
 
-	w.days = days
-	return days, nil
+	return w.Days, nil
 }
 
 func daysFromReader(rc io.ReadSeeker, start time.Time) ([]*Day, error) {

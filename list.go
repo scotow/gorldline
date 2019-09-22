@@ -91,9 +91,9 @@ func NewList(doc *goquery.Document, baseUrl string) (*List, error) {
 }
 
 type List struct {
-	Weeks []*Week
-	Start time.Time
-	End   time.Time
+	Weeks []*Week   `json:"weeks"`
+	Start time.Time `json:"start"`
+	End   time.Time `json:"end"`
 }
 
 func (l *List) Len() int {
