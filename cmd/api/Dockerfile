@@ -23,7 +23,6 @@ FROM scratch
 
 # Copy our static executable and static files.
 COPY --from=builder /go/bin/gorldline /gorldline
-COPY static /static
 
 # Copy SSL certificates for HTTPS connections.
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
