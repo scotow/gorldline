@@ -36,6 +36,7 @@ var (
 	dict = map[string]string{
 		" a ":   " à ",
 		"Peche": "Pêche",
+		"nee":   "née",
 		//"Bar a Legumes": "Bar à Legumes",
 	}
 )

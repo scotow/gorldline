@@ -72,7 +72,7 @@ func (d *Day) FormatFr() string {
 	}
 
 	b.WriteString("Les accompagnements seront ")
-	b.WriteString(strings.Join(acc[:cap(acc)-1], ", "))
+	b.WriteString(strings.Join(acc[:cap(acc)-2], ", "))
 	b.WriteString(" et ")
 	b.WriteString(acc[len(acc)-1])
 	b.WriteString(".")
