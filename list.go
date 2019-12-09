@@ -133,3 +133,29 @@ func (l *List) Nearest() *Week {
 
 	return nil
 }
+
+func (l *List) Merge(other *List) {
+	newWeek := make([]*Week, 0)
+
+	for _, w1 := range other.Weeks {
+		for _, w2 := range l.Weeks {
+			if w1.Start == w2.Start && w2.End == w2.End {
+				newWeek = append(newWeek, w1)
+				break
+			}
+		}
+	}
+
+	l.Weeks = append(l.Weeks, newWeek...)
+	sort.Sort(l)
+}
+
+func (l *List) MergeWithCurrent() error {
+	l2, err := CurrentList()
+	if err != nil {
+		return err
+	}
+
+	l.Merge(l2)
+	return nil
+}

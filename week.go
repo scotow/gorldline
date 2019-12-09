@@ -157,7 +157,7 @@ func daysFromReader(rc io.ReadSeeker, start time.Time) ([]*Day, error) {
 		return nil, ErrInvalidSheetData
 	}
 
-	days, err := parseDays(sheet, start)
+	days, err := parseDays(sheet[5:], start)
 	if err != nil {
 		return nil, err
 	}
@@ -167,42 +167,66 @@ func daysFromReader(rc io.ReadSeeker, start time.Time) ([]*Day, error) {
 
 func parseDays(sheet [][]string, start time.Time) ([]*Day, error) {
 	types := parseTypes(sheet)
+	days := make([]*Day, 0, (len(sheet[0])-1)/2)
 
-	dayCount := (len(sheet[0]) - 1) / 2
-	meals := make([][]*Meal, dayCount)
-	for i := range meals {
-		meals[i] = make([]*Meal, 0)
-	}
-
-	for y, row := range sheet[4:] {
-		for x := 1; x < len(row); x += 2 {
-			name := strings.TrimSpace(row[x])
-			if name == "" {
-				continue
-			}
-
-			m := new(Meal)
-			m.Type = types[y]
-			m.Name = name
-			m.Price = parsePrice(row[x+1])
-
-			meals[x/2] = append(meals[x/2], m)
+	for x, d := 1, 0; x < len(sheet[0]); x, d = x+2, d+1 {
+		names := make([]string, 0, len(sheet[0]))
+		prices := make([]string, 0, len(sheet[0]))
+		for y := 0; y < len(sheet); y++ {
+			names = append(names, strings.TrimSpace(sheet[y][x]))
+			prices = append(prices, sheet[y][x+1])
 		}
-	}
 
-	days := make([]*Day, dayCount)
-	for i, mealList := range meals {
-		dayStart := start.Add(time.Hour * 24 * time.Duration(i))
-		days[i] = NewDay(mealList, dayStart, endOfDay(dayStart))
+		dayStart := start.Add(time.Hour * 24 * time.Duration(d))
+		day, err := NewDayRaw(types, names, prices, dayStart, endOfDay(dayStart))
+		if err != nil {
+			return nil, err
+		}
+
+		days = append(days, day)
 	}
 
 	return days, nil
 }
 
+//func parseDays(sheet [][]string, start time.Time) ([]*Day, error) {
+//	types := parseTypes(sheet)
+//
+//	dayCount := (len(sheet[0]) - 1) / 2
+//	meals := make([][]*Meal, dayCount)
+//	for i := range meals {
+//		meals[i] = make([]*Meal, 0)
+//	}
+//
+//	for y, row := range sheet[4:] {
+//		for x := 1; x < len(row); x += 2 {
+//			name := strings.TrimSpace(row[x])
+//			if name == "" {
+//				continue
+//			}
+//
+//			m := new(Meal)
+//			m.Type = types[y]
+//			m.Name = name
+//			m.Price = parsePrice(row[x+1])
+//
+//			meals[x/2] = append(meals[x/2], m)
+//		}
+//	}
+//
+//	days := make([]*Day, dayCount)
+//	for i, mealList := range meals {
+//		dayStart := start.Add(time.Hour * 24 * time.Duration(i))
+//		days[i] = NewDay(mealList, dayStart, endOfDay(dayStart))
+//	}
+//
+//	return days, nil
+//}
+
 func parseTypes(sheet [][]string) []string {
-	types := make([]string, len(sheet)-4)
-	for i, row := range sheet[4:] {
-		types[i] = row[0]
+	types := make([]string, 0, len(sheet))
+	for _, row := range sheet {
+		types = append(types, smoothGrammar(row[0]))
 	}
 
 	return types

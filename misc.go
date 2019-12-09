@@ -32,6 +32,14 @@ var (
 	timeZero = time.Time{}
 )
 
+var (
+	dict = map[string]string{
+		" a ":   " à ",
+		"Peche": "Pêche",
+		//"Bar a Legumes": "Bar à Legumes",
+	}
+)
+
 func init() {
 	l, err := time.LoadLocation("Europe/Paris")
 	if err != nil {
@@ -45,12 +53,12 @@ func parseDate(dateString string) (time.Time, time.Time, error) {
 	var startDay, endDay, year int
 	var frMonth string
 
-	n, err := fmt.Sscanf(strings.ToLower(dateString), "semaine du %d au %d %s", &startDay, &endDay, &frMonth)
+	n, err := fmt.Sscanf(strings.ToLower(dateString), "%s du %d au %d %s", new(string), &startDay, &endDay, &frMonth)
 	if err != nil {
 		return timeZero, timeZero, err
 	}
 
-	if n != 3 {
+	if n != 4 {
 		return timeZero, timeZero, ErrCannotParseDay
 	}
 
@@ -145,4 +153,11 @@ func midnight(t time.Time) time.Time {
 
 func endOfDay(t time.Time) time.Time {
 	return midnight(t).Add(time.Hour*24 - time.Nanosecond)
+}
+
+func smoothGrammar(s string) string {
+	for k, v := range dict {
+		s = strings.ReplaceAll(s, k, v)
+	}
+	return s
 }
