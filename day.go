@@ -54,7 +54,7 @@ type Day struct {
 
 func (d *Day) FormatFr() string {
 	var b strings.Builder
-	b.WriteString("Ajourd'hui, ")
+	b.WriteString("Aujourd'hui, ")
 	b.WriteString(d.Meals["Plat du Jour"][0].Name)
 	b.WriteString(" sera le plat du jour. ")
 
