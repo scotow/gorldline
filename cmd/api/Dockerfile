@@ -27,6 +27,9 @@ COPY --from=builder /go/bin/gorldline /gorldline
 # Copy SSL certificates for HTTPS connections.
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
+# Copy locale data.
+COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
+ENV ZONEINFO=/zoneinfo.zip
 
 # Run the hello binary.
 ENTRYPOINT ["/gorldline"]
