@@ -1,6 +1,6 @@
-################################
-# STEP 1 build executable binary
-################################
+##################################
+# STEP 1 build executable binary #
+##################################
 FROM golang:alpine AS builder
 
 # Install git.
@@ -18,9 +18,9 @@ RUN go get -d -v
 # Build the binary.
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/gorldline
 
-############################
-# STEP 2 build a small image
-############################
+##############################
+# STEP 2 build a small image #
+##############################
 FROM scratch
 
 # Copy our static executable and static files.
