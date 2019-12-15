@@ -20,7 +20,9 @@ jobs:
           docker tag image:latest docker.pkg.github.com/$GITHUB_REPOSITORY/$REPO-api:$GITHUB_SHA
           docker tag image:latest docker.pkg.github.com/$GITHUB_REPOSITORY/$REPO-api:$VERSION
       - name: Loging in
-        run: docker login docker.pkg.github.com -u $(cut -d/ -f1 <<< $GITHUB_REPOSITORY) -p ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          USER=$(cut -d/ -f1 <<< $GITHUB_REPOSITORY)
+          docker login docker.pkg.github.com -u $USER -p ${{ secrets.GITHUB_TOKEN }}
       - name: Pushing image
         run: |
           REPO=$(cut -d/ -f2 <<< $GITHUB_REPOSITORY)
@@ -29,7 +31,10 @@ jobs:
           docker push docker.pkg.github.com/$GITHUB_REPOSITORY/$REPO-api:$GITHUB_SHA
           docker push docker.pkg.github.com/$GITHUB_REPOSITORY/$REPO-api:$VERSION
       - name: Writing stack config file
-        run: echo '${{ secrets.DOCKER_STACK_YAML }}' > stack.yaml
+        run: |
+          VERSION=$(rev <<< $GITHUB_REF | cut -d/ -f1 | rev | tr -d v)
+          echo '${{ secrets.DOCKER_STACK_YAML }}' > stack.yaml
+          sed -i "s/latest/$VERSION/g" stack.yaml
       - name: Deploying new version
         uses: scotow/docker-ssh-action@master
         with:
@@ -38,4 +43,5 @@ jobs:
           remote_ssh_public_key: ${{ secrets.REMOTE_SSH_PUBLIC_KEY }}
           remote_ssh_proto: ${{ secrets.REMOTE_SSH_PROTO }}
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           args: stack deploy -c stack.yaml --with-registry-auth gorldline
