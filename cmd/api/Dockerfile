@@ -6,8 +6,10 @@ FROM golang:alpine AS builder
 # Install git.
 # Git is required for fetching the dependencies.
 RUN apk update && apk add --no-cache git
-WORKDIR $GOPATH/src/scotow/gorldline/cmd/api
-COPY . .
+COPY . $GOPATH/src/github.com/scotow/gorldline
+
+# Move to command directory.
+WORKDIR $GOPATH/src/github.com/scotow/gorldline/cmd/api
 
 # Fetch dependencies.
 # Using go get.

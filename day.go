@@ -52,30 +52,44 @@ type Day struct {
 	End   time.Time          `json:"end"`
 }
 
-func (d *Day) FormatFr() string {
+func (d *Day) FormatFr(today bool) string {
 	var b strings.Builder
-	b.WriteString("Aujourd'hui, ")
-	b.WriteString(d.Meals["Plat du Jour"][0].Name)
-	b.WriteString(" sera le plat du jour. ")
 
-	b.WriteString("Le stand Trattoria vous propose ")
-	b.WriteString(d.Meals["Trattoria"][0].Name)
-	b.WriteString(". ")
-
-	b.WriteString("Le plat de la cuisine du monde sera ")
-	b.WriteString(d.Meals["Cuisine du Monde"][0].Name)
-	b.WriteString(". ")
-
-	acc := make([]string, 0, len(d.Meals["Bar a Legumes"]))
-	for _, a := range d.Meals["Bar à Legumes"] {
-		acc = append(acc, a.Name)
+	if today {
+		b.WriteString("Aujourd'hui, ")
+	} else {
+		b.WriteString("Ce jour, ")
 	}
 
-	b.WriteString("Les accompagnements seront ")
-	b.WriteString(strings.Join(acc[:cap(acc)-2], ", "))
-	b.WriteString(" et ")
-	b.WriteString(acc[len(acc)-1])
-	b.WriteString(".")
+	if v, p := d.Meals["Plat du Jour"]; p && len(v) > 0 {
+		b.WriteString(v[0].Name)
+		b.WriteString(" sera le plat du jour. ")
+	}
+
+	if v, p := d.Meals["Trattoria"]; p && len(v) > 0 {
+		b.WriteString("Le stand Trattoria vous propose ")
+		b.WriteString(v[0].Name)
+		b.WriteString(". ")
+	}
+
+	if v, p := d.Meals["Cuisine du Monde"]; p && len(v) > 0 {
+		b.WriteString("Le plat de la cuisine du monde sera ")
+		b.WriteString(v[0].Name)
+		b.WriteString(". ")
+	}
+
+	if v, p := d.Meals["Bar a Legumes"]; p && len(v) > 0 {
+		acc := make([]string, 0, len(d.Meals["Bar a Legumes"]))
+		for _, a := range v {
+			acc = append(acc, a.Name)
+		}
+
+		b.WriteString("Les accompagnements seront ")
+		b.WriteString(strings.Join(acc[:cap(acc)-2], ", "))
+		b.WriteString(" et ")
+		b.WriteString(acc[len(acc)-1])
+		b.WriteString(". ")
+	}
 
 	return b.String()
 }

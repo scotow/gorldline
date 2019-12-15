@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/scotow/gorldline"
@@ -81,8 +82,19 @@ func handleCurrentDayFr(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
+	if nearestDay == nil {
+		http.Error(w, "cannot find nearest day", http.StatusNoContent)
+		return
+	}
+
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	_, _ = w.Write([]byte(nearestDay.FormatFr()))
+	if nearestDay.Start.After(time.Now()) || nearestDay.End.Before(time.Now()) {
+		_, _ = w.Write([]byte("Ce menu ne correspond pas au menu d'aujourd'hui.\n"))
+		_, _ = w.Write([]byte(nearestDay.FormatFr(false)))
+	} else {
+		_, _ = w.Write([]byte(nearestDay.FormatFr(true)))
+	}
+
 }
 
 func writeJson(element interface{}, w http.ResponseWriter) {
