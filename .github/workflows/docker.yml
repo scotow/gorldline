@@ -36,12 +36,11 @@ jobs:
           echo '${{ secrets.DOCKER_STACK_YAML }}' > stack.yaml
           sed -i "s/latest/$VERSION/g" stack.yaml
       - name: Deploying new version
-        uses: scotow/docker-ssh-action@master
+        uses: scotow/docker-ssh-action@v2
         with:
           remote_host: ${{ secrets.REMOTE_HOST }}
           remote_user: ${{ secrets.REMOTE_USER }}
           remote_ssh_public_key: ${{ secrets.REMOTE_SSH_PUBLIC_KEY }}
-          remote_ssh_proto: ${{ secrets.REMOTE_SSH_PROTO }}
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           args: stack deploy -c stack.yaml --with-registry-auth gorldline
