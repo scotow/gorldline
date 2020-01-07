@@ -37,6 +37,7 @@ var (
 		" a ":   " à ",
 		"Peche": "Pêche",
 		"nee":   "née",
+		"Burger us": "Burger US",
 		//"Bar a Legumes": "Bar à Legumes",
 	}
 )
