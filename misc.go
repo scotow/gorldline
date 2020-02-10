@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +15,8 @@ var (
 )
 
 var (
+	dateLabelRegex = regexp.MustCompile(`(?mi)(\d+)\s*au\s*(\d+)\s*(\w+)`)
+
 	months = [...]string{
 		"janvier",
 		"fevrier",
@@ -34,9 +37,9 @@ var (
 
 var (
 	dict = map[string]string{
-		" a ":   " à ",
-		"Peche": "Pêche",
-		"nee":   "née",
+		" a ":       " à ",
+		"Peche":     "Pêche",
+		"nee":       "née",
 		"Burger us": "Burger US",
 		//"Bar a Legumes": "Bar à Legumes",
 	}
@@ -52,20 +55,24 @@ func init() {
 }
 
 func parseDate(dateString string) (time.Time, time.Time, error) {
-	var startDay, endDay, year int
-	var frMonth string
+	matches := dateLabelRegex.FindStringSubmatch(dateString)
+	if matches == nil || len(matches) != 4 {
+		return timeZero, timeZero, ErrCannotParseDay
+	}
 
-	n, err := fmt.Sscanf(strings.ToLower(dateString), "%s du %d au %d %s", new(string), &startDay, &endDay, &frMonth)
+	startDay, err := strconv.Atoi(matches[1])
 	if err != nil {
 		return timeZero, timeZero, err
 	}
 
-	if n != 4 {
-		return timeZero, timeZero, ErrCannotParseDay
+	endDay, err := strconv.Atoi(matches[2])
+	if err != nil {
+		return timeZero, timeZero, err
 	}
 
-	frMonth = strings.Replace(frMonth, "é", "e", -1)
-	frMonth = strings.Replace(frMonth, "û", "u", -1)
+	frMonth := strings.ToLower(matches[3])
+	frMonth = strings.ReplaceAll(frMonth, "é", "e")
+	frMonth = strings.ReplaceAll(frMonth, "û", "u")
 
 	var endMonth int
 	for i, m := range months {
@@ -81,6 +88,7 @@ func parseDate(dateString string) (time.Time, time.Time, error) {
 
 	now := time.Now().In(locale)
 
+	var year int
 	if endMonth == 12 && now.Month() == time.January {
 		year = now.Year() - 1
 	} else {
