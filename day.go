@@ -2,8 +2,13 @@ package gorldline
 
 import (
 	"errors"
+	"fmt"
+	"io"
+	"sort"
 	"strings"
 	"time"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 var (
@@ -92,4 +97,75 @@ func (d *Day) FrenchSentence(today bool) string {
 	}
 
 	return strings.TrimSpace(b.String())
+}
+
+func (d *Day) WriteAsciiTable(w io.Writer) error {
+	table := tablewriter.NewWriter(w)
+	table.SetAutoMergeCells(true)
+	table.SetRowLine(true)
+	table.SetColWidth(12)
+	table.SetAlignment(tablewriter.ALIGN_CENTER)
+
+	data := [][]string{
+		make([]string, len(d.Meals) * 2),
+	}
+
+	col := 0
+	for k, v := range d.Meals {
+		data[0][col] = strings.ToUpper(k)
+		data[0][col + 1] = ""
+		for i, m := range v {
+			if i >= len(data) - 1 {
+				data = append(data, make([]string, len(data[0])))
+			}
+			data[i + 1][col] = m.Name
+			if m.Price != -1 {
+				data[i + 1][col + 1] = fmt.Sprintf("%.2f€", float32(m.Price) / 100)
+			}
+		}
+		col += 2
+	}
+
+	table.AppendBulk(data)
+	table.Render()
+	return nil
+}
+
+func (d *Day) WriteMarkdownTable(w io.Writer) error {
+	data := [][]string{
+		make([]string, len(d.Meals)),
+		make([]string, len(d.Meals)),
+	}
+
+	for i := 0; i < len(d.Meals); i++ {
+		data[1][i] = ":-:"
+	}
+
+	keys := make([]string, 0, len(d.Meals))
+	for k := range d.Meals {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	
+	col := 0
+	for _, k := range keys {
+		data[0][col] = k
+		v := d.Meals[k]
+		for i, m := range v {
+			if i >= len(data) - 2 {
+				data = append(data, make([]string, len(data[0])))
+			}
+			if m.Price != -1 {
+				data[i + 2][col] = fmt.Sprintf("%s *%.2f€*", m.Name, float32(m.Price) / 100)
+			} else {
+				data[i + 2][col] = m.Name
+			}
+		}
+		col += 1
+	}
+
+	for i := 0; i < len(data); i++ {
+		fmt.Printf("|%s|\n", strings.Join(data[i], "|"))
+	}
+	return nil
 }
