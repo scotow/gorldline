@@ -52,7 +52,7 @@ type Day struct {
 	End   time.Time          `json:"end"`
 }
 
-func (d *Day) FormatFr(today bool) string {
+func (d *Day) FrenchSentence(today bool) string {
 	var b strings.Builder
 
 	if today {
@@ -91,5 +91,5 @@ func (d *Day) FormatFr(today bool) string {
 		b.WriteString(". ")
 	}
 
-	return b.String()
+	return strings.TrimSpace(b.String())
 }

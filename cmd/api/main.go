@@ -90,11 +90,10 @@ func handleCurrentDayFr(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	if nearestDay.Start.After(time.Now()) || nearestDay.End.Before(time.Now()) {
 		_, _ = w.Write([]byte("Ce menu ne correspond pas au menu d'aujourd'hui.\n"))
-		_, _ = w.Write([]byte(nearestDay.FormatFr(false)))
+		_, _ = w.Write([]byte(nearestDay.FrenchSentence(false)))
 	} else {
-		_, _ = w.Write([]byte(nearestDay.FormatFr(true)))
+		_, _ = w.Write([]byte(nearestDay.FrenchSentence(true)))
 	}
-
 }
 
 func writeJson(element interface{}, w http.ResponseWriter) {
